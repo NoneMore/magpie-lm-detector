@@ -57,7 +57,7 @@ SDK 参考数据默认在首次检测或首次加载参考数据状态时联网�
 
 ## 与旧版内置插件并存
 
-本仓库实现完全独立；**没有删除、替换或修改** `NoneMore/magpie/plugins/lm-detector`，也不提供覆盖既有嵌入插件的自动迁移。两个版本可以同时安装，但会看到两个入口并且需要分别管理；建议仅在外置插件确认可用后由用户自行选择启用哪一个。这里没有 Provider 行动作和 Magpie 内嵌侧边栏页面，因为上游不支持 Fork 的 Page Tool Bridge。
+本仓库实现完全独立；**没有删除、替换或修改** `NoneMore/magpie/plugins/lm-detector`，也不提供覆盖既有嵌入插件的自动迁移。外置版使用独立包名 `magpie-lm-detector-external`，不会与内置版的 `magpie-lm-detector` 抢占插件身份；两个版本可以同时安装，但会看到两个入口并且需要分别管理；建议仅在外置插件确认可用后由用户自行选择启用哪一个。这里没有 Provider 行动作和 Magpie 内嵌侧边栏页面，因为上游不支持 Fork 的 Page Tool Bridge。
 
 ## 开发与致谢
 
