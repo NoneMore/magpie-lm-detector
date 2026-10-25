@@ -1,5 +1,5 @@
 {
-  "name": "magpie-lm-detector",
+  "name": "magpie-lm-detector-external",
   "version": "0.1.0",
   "description": "Standalone LM Detector console for Magpie, powered by lmfpd-sdk",
   "type": "module",
