@@ -50,7 +50,11 @@ test('browser console enforces one-use links, sessions, CSRF, and never exposes 
   res=await fetch(origin+'/api/reference',{headers});assert.equal(res.status,200);assert.deepEqual(await res.json(),{builtAt:'test-reference'});
   res=await fetch(origin+'/api/state',{headers});state=await res.json();assert.equal(state.jobs.length,1);
   res=await fetch(origin+'/api/config',{method:'POST',headers,body:JSON.stringify({gatewayUrl:'https://remote.example.com/v1',gatewayKey:''})});
-  assert.equal(res.status,200); // key intentionally reuses the stored user-supplied key
+  assert.equal(res.status,400); // switching to remote requires an explicit key
+  res=await fetch(origin+'/api/config',{method:'POST',headers,body:JSON.stringify({gatewayUrl:'https://remote.example.com/v1',gatewayKey:'remote-key'})});
+  assert.equal(res.status,200);
+  res=await fetch(origin+'/api/config',{method:'POST',headers,body:JSON.stringify({gatewayUrl:'https://remote.example.com/v1',gatewayKey:''})});
+  assert.equal(res.status,200); // same remote host may retain key
   res=await fetch(origin+'/api/config',{method:'POST',headers,body:JSON.stringify({gatewayUrl:'http://remote.example.com',gatewayKey:'remote-key'})});
   assert.equal(res.status,400);
 });
