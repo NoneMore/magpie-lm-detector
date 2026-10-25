@@ -1,0 +1,28 @@
+:root { color-scheme: light dark; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; --accent:#4781e8; --line:color-mix(in srgb,CanvasText 16%,transparent); --soft:color-mix(in srgb,CanvasText 4%,Canvas); --muted:color-mix(in srgb,CanvasText 58%,Canvas); }
+* { box-sizing:border-box; }
+body { max-width:960px; margin:0 auto; padding:32px 26px; line-height:1.55; }
+header { display:flex; align-items:start; justify-content:space-between; gap:24px; padding-bottom:23px; border-bottom:1px solid var(--line); }
+h1 {font-size:29px;letter-spacing:-.045em;margin:0 0 8px;line-height:1.2;}h2 {font-size:17px;letter-spacing:-.02em;margin:0;}
+.eyebrow {letter-spacing:.12em;color:var(--accent);font-size:11px;font-weight:750;margin:0 0 9px;}
+.subtitle,.muted,.hint,.footnote {color:var(--muted);font-size:12px;}.subtitle{margin:0;}
+.pill {white-space:nowrap;border:1px solid var(--line);font-size:11px;padding:5px 10px;border-radius:15px;}
+.panel {padding:22px;margin-top:18px;border:1px solid var(--line);border-radius:12px;}
+.section-head {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;}.section-head>span{font-size:11px;color:var(--muted);}
+.connect-row,.fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;}
+label{display:grid;gap:5px;color:var(--muted);font-size:12px;font-weight:600;}
+input:not([type=checkbox]),select{width:100%;min-height:40px;color:CanvasText;background:Canvas;border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:13px;}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+button {border:1px solid var(--line);border-radius:7px;padding:8px 15px;background:var(--soft);color:CanvasText;cursor:pointer;font:inherit;font-size:13px;}
+button:hover:not(:disabled){border-color:var(--accent);}button:disabled{opacity:.45;cursor:default;}
+button.primary{background:var(--accent);color:white;border-color:var(--accent);font-weight:600;}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px;}
+.checks{display:flex;gap:20px;flex-wrap:wrap;margin-top:18px;}.checks label{display:flex;gap:7px;align-items:center;}
+.status{margin-top:18px;font-size:12px;color:var(--muted);}.status.error{color:#dc6a62;}.status.good{color:#25a36d;}
+progress{width:100%;height:11px;accent-color:var(--accent);}.sample-list{display:grid;gap:9px;margin-top:15px;}.sample-item{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:9px;font-size:12px;}
+.hint{margin:14px 0 0;}.winner {display:grid;gap:4px;padding:17px;background:var(--soft);border-radius:9px;margin:15px 0;}.winner small{color:var(--muted);}.winner strong{font-size:22px;overflow-wrap:anywhere;}.winner p{margin:0;color:var(--muted);font-size:12px;}
+.table{overflow-x:auto;}table{border-collapse:collapse;width:100%;font-size:13px;}th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;}th{color:var(--muted);font-size:11px;font-weight:600;}td.num{white-space:nowrap;font-variant-numeric:tabular-nums;}
+.bar{display:inline-block;width:70px;height:6px;vertical-align:middle;background:var(--line);border-radius:5px;margin-right:8px;overflow:hidden;}.bar i{display:block;background:var(--accent);height:100%;}
+details{margin-top:16px;}summary{font-size:13px;cursor:pointer;}pre{font-size:11px;overflow:auto;max-height:320px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.round-label{display:flex;align-items:center;gap:7px;}.round-label select{width:auto;max-width:270px;}.warning{border-left:3px solid #c89c2c;padding:12px;background:var(--soft);font-size:12px;}
+.history {display:grid;gap:9px;}.history button{text-align:left;background:transparent;display:flex;justify-content:space-between;gap:10px;width:100%;}.footnote{line-height:1.7;margin-top:20px;}[hidden]{display:none!important;}
+@media(max-width:650px){body{padding:20px 14px;}.panel{padding:16px}.connect-row,.fields{grid-template-columns:1fr;}header{display:block}.pill{display:inline-block;margin-top:12px}.section-head{align-items:start;flex-direction:column;}.round-label{width:100%;}.round-label select{flex:1;}}

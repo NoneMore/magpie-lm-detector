@@ -1,0 +1,17 @@
+{
+  "name": "magpie-lm-detector",
+  "version": "0.1.0",
+  "description": "Standalone LM Detector console for Magpie, powered by lmfpd-sdk",
+  "type": "module",
+  "main": "./index.mjs",
+  "license": "MIT",
+  "repository": "github:NoneMore/magpie-lm-detector",
+  "engines": { "bun": ">=1.4.2", "node": ">=22" },
+  "dependencies": { "lmfpd-sdk": "^0.2.0" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check index.mjs && node --check src/gateway.mjs && node --check src/jobs.mjs && node --check src/console.mjs && node --check web/app.js && node --test test/*.test.mjs"
+  },
+  "keywords": ["magpie-plugin", "magpie", "lmfpd", "model-fingerprint"],
+  "files": ["index.mjs", "src", "web", "README.md", "LICENSE"]
+}
