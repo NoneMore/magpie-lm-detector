@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
-import { mkdir, readFile, writeFile, rename, chmod } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, chmod, unlink } from 'node:fs/promises';
 import { discoverGateway, gatewaySettings, listModels } from './gateway.mjs';
 import { JobManager } from './jobs.mjs';
 
@@ -46,8 +46,7 @@ async function saveConfig(file, c) {
     await rename(temporary, file);
     await chmod(file, 0o600);
   } catch (e) {
-    // Best effort cleanup of staged files is deliberately omitted here;
-    // the final file is never partially overwritten on a failed rename.
+    await unlink(temporary).catch(() => {});
     throw e;
   }
 }
@@ -159,7 +158,12 @@ export async function startConsole(options = {}) {
       }
       if (req.method === 'POST' && pathname === '/api/config') {
         const body = await readBody(req);
-        const next = gatewaySettings({ url: body.gatewayUrl, key: body.gatewayKey || getConfig()?.key || '' });
+        const explicitKey = typeof body.gatewayKey === 'string' ? body.gatewayKey : '';
+        const next = gatewaySettings({ url: body.gatewayUrl, key: explicitKey || getConfig()?.key || '' });
+        if (!['127.0.0.1', 'localhost', '[::1]'].includes(new URL(next.url).hostname) &&
+            !explicitKey && (!config || new URL(config.url).origin !== new URL(next.url).origin)) {
+          throw new Error('切换到远程 Gateway 时必须明确输入 Key，不能沿用本地默认 Key。');
+        }
         await saveConfig(file, next);
         config = next;
         clearTimeout(discoveryTimer);
