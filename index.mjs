@@ -14,10 +14,10 @@ function ensureConsole(options) {
 }
 
 export default {
-  id: 'magpie-lm-detector',
+  id: 'magpie-lm-detector-external',
   server: async (_input, options = {}) => ({
     auth: {
-      provider: 'magpie-lm-detector',
+      provider: 'magpie-lm-detector-external',
       methods: [{
         type: 'oauth',
         label: '打开模型指纹检测控制台 / Open fingerprint console',
@@ -38,7 +38,7 @@ export default {
       // Avoid waiting on Magpie's own Gateway while it is still starting.
       await ensureConsole(options);
       config.provider ??= {};
-      config.provider['magpie-lm-detector'] = {
+      config.provider['magpie-lm-detector-external'] = {
         name: 'LM Detector (console)', models: {},
       };
     },
