@@ -12,7 +12,7 @@ Magpie 插件管理中添加：
 magpie plugin add github:NoneMore/magpie-lm-detector
 ```
 
-打开 Magpie 的 Plugins / Provider 登录入口，选择 **LM Detector (console)** → **打开模型指纹检测控制台**，打开给出的一次性本地链接。此流程借用插件已有的 OAuth UI 打开本地页面，**不需要输入任何授权码或真正完成 OAuth 登录**。Magpie 的插件 Host 需要 Bun 1.4.2+；插件自动安装 `lmfpd-sdk` 依赖，无需 Go、Node 运行时或平台专属二进制。
+打开 Magpie 的 Plugins / Provider 登录入口，选择 **LM Detector (console)** → **打开模型指纹检测控制台**，打开给出的一次性本地链接。此流程借用插件已有的 OAuth UI 打开本地页面，**不需要输入任何授权码或真正完成 OAuth 登录**。Magpie 的插件 Host 需要 Bun 1.4.4+；插件自动安装 `lmfpd-sdk` 依赖，无需 Go、Node 运行时或平台专属二进制。
 
 也可以本地开发：
 
@@ -51,7 +51,7 @@ HTTP 控制台带有严格 Host、Origin、CSP 与路径校验。不要把此本
 
 支持 OpenAI Responses、Chat Completions 和 Anthropic Messages；1–3 个挑战、1–3 并发、1–20 轮重复、SSE、严格模式、推理强度、超时以及中途取消。最多允许两个任务同时运行，任务历史保留在插件宿主内存中，重启后会丢失。已完成轮次单独评分，不会合并概率。
 
-**SDK 限制**：当前 `detector.detect()` 提供整轮完成后的结果，不公开逐样本/逐 token 进度或 TTFT/TPS。独立控制台只展示已完成轮次和结果；SDK 的 `AbortSignal` 可用于取消整轮请求。日后 SDK 提供进度回调时可以改为更细粒度的 UI。SDK 的排名是**闭集候选概率**，不能证明模型真实身份。
+**SDK 0.2.0 实时进度**：`detector.detect(config, { signal, onSample })` 在每个样本状态变化时回调，控制台显示排队（queued）、等待（waiting）、流式计数（streaming）及完成/截断/失败/取消，并显示 `first_byte_ms` 首字节耗时。任务详情通过本地 API 轮询，整轮结果返回后才进行排名评分；不展示逐 token 消耗或 TPS。`AbortSignal` 仍可取消检测。SDK 的排名是**闭集候选概率**，不能证明模型真实身份。
 
 SDK 参考数据默认在首次检测或首次加载参考数据状态时联网下载约 3.6 MB 压缩数据，缓存后可离线评分；若网络不可用且没有缓存，检测会失败。需要离线数据源时在启动 Magpie 的环境中设置 `LMFPD_DATA_SOURCE=/path/to/data`（目录内有 `unified_bank.json`、`shared_detector.bin`）。
 
