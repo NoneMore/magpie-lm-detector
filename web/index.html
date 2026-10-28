@@ -44,7 +44,7 @@
     <div class="section-head"><h2>检测进度</h2><span id="progressLabel"></span></div>
     <progress id="progress" max="100" value="0"></progress>
     <div id="sampleProgress" class="sample-list"></div>
-    <p class="hint">SDK 当前不提供单个请求的实时采样回调，因此进度按已结束轮次更新；页面可以在检测期间关闭，后台任务继续执行。</p>
+    <p class="hint">SDK 0.2+ 实时报告排队、等待、流式计数和完成状态，并显示首字节耗时；页面可以在检测期间关闭，后台任务继续执行。</p>
   </section>
   <section class="panel" id="resultSection" hidden>
     <div class="section-head"><h2>检测结果</h2><label class="round-label">查看轮次 <select id="roundResult"></select></label></div>

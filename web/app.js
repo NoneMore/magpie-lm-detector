@@ -72,11 +72,27 @@
     const total = j.count * j.repeat;
     const done = Math.min(total, j.completed);
     $('progress').value = 100 * done / total;
-    $('progressLabel').textContent = `第 ${j.round || 0}/${j.repeat} 轮 · 已完成 ${done}/${total} 次请求`;
+    $('progressLabel').textContent = `第 ${j.round || 0}/${j.repeat} 轮 · 已结束 ${done}/${total} 次请求`;
     const root = $('sampleProgress'); root.replaceChildren();
-    if (j.state === 'running') {
+    const names = {
+      queued: '排队中', waiting: '等待响应', streaming: '流式接收',
+      complete: '已完成', truncated: '已截断', failed: '失败', cancelled: '已取消',
+    };
+    if (j.currentSamples?.some(Boolean)) {
+      for (let i = 0; i < j.count; i++) {
+        const s = j.currentSamples[i] || { state: 'queued', count: 0 };
+        const e = document.createElement('div'); e.className = 'sample-item';
+        const label = document.createElement('span');
+        label.textContent = `第 ${j.round} 轮 · 样本 ${i + 1} · ${names[s.state] || s.state}`;
+        const detail = document.createElement('span');
+        detail.textContent = `${s.count ?? 0}/${s.expectedCount ?? '—'} 个数字` +
+          (s.firstByteMs == null ? '' : ` · 首字节 ${number(s.firstByteMs, ' ms')}`) +
+          (s.error ? ` · ${s.error}` : '');
+        e.append(label, detail); root.append(e);
+      }
+    } else if (j.state === 'running') {
       const e = document.createElement('p'); e.className = 'muted';
-      e.textContent = j.round ? `第 ${j.round} 轮采样中（等待 SDK 返回本轮结果）…` : '正在加载 SDK 参考数据…';
+      e.textContent = j.round ? '正在准备本轮采样…' : '正在加载 SDK 参考数据…';
       root.append(e);
     }
     for (const r of j.rounds) {
@@ -138,7 +154,7 @@
       const j = await api('/api/jobs/' + id);
       if (jobId !== id) return;
       draw(j);
-      if (j.state === 'running') timer = setTimeout(watch, 1500);
+      if (j.state === 'running') timer = setTimeout(watch, 850);
       else { jobId = null; locked(false); refreshHistory(); }
     } catch (e) {
       jobId = null; locked(false); message('读取检测任务失败：' + errText(e), 'error');

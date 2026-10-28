@@ -4,6 +4,7 @@ const MAX_REPEAT = 20;
 const MAX_ACTIVE = 2;
 const MAX_SAVED = 40;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const FINAL_STATES = new Set(['complete', 'truncated', 'failed', 'cancelled']);
 
 function intRange(value, min, max, name) {
   if (!Number.isInteger(value) || value < min || value > max) {
@@ -38,7 +39,13 @@ export function validateJob(input) {
   return { model, api, count, parallel: Math.min(parallel, count), repeat, timeout, stream, strict, effort };
 }
 
-function publicSample(s, index) {
+function safeError(value, key) {
+  if (value == null) return null;
+  const message = String(value);
+  return (key ? message.replaceAll(key, '[REDACTED]') : message).slice(0, 400);
+}
+
+function publicSample(s, index, key) {
   // Display-only heuristic; it never changes SDK scoring or acceptance.
   const values = (s.text || '').match(/\b\d+\b/g)?.map(Number).filter(n => n >= 1 && n <= 355) || [];
   return {
@@ -46,8 +53,9 @@ function publicSample(s, index) {
     state: s.state,
     count: s.count,
     expectedCount: s.expected_count,
-    error: s.error,
+    error: safeError(s.error, key),
     responseModel: s.response_model,
+    firstByteMs: Number.isFinite(s.first_byte_ms) && s.first_byte_ms >= 0 ? s.first_byte_ms : null,
     minimumValidNumber: values.length ? Math.min(...values) : null,
   };
 }
@@ -55,7 +63,7 @@ function publicSample(s, index) {
 function publicRound(round) {
   return {
     round: round.round,
-    samples: round.samples.map(publicSample),
+    samples: round.samples,
     analysis: round.analysis ? {
       ...round.analysis,
       results: round.analysis.results?.slice(0, 20) ?? [],
@@ -114,8 +122,9 @@ export class JobManager {
       state: j.state,
       startedAt: j.startedAt,
       finishedAt: j.finishedAt,
-      completed: j.completed,
+      completed: j.completed + j.currentSamples.filter(s => FINAL_STATES.has(s?.state)).length,
       round: j.round,
+      currentSamples: j.currentSamples,
       rounds: j.rounds.map(publicRound),
       error: j.error,
     };
@@ -129,7 +138,7 @@ export class JobManager {
     }
     const id = randomUUID();
     const job = { id, params, state: 'running', startedAt: Date.now(), finishedAt: null,
-      completed: 0, round: 0, rounds: [], error: null, controller: new AbortController() };
+      completed: 0, round: 0, rounds: [], currentSamples: [], error: null, controller: new AbortController() };
     this.#jobs.set(id, job);
     this.#prune();
     // Each job holds a private copy of the Gateway credentials; no key enters public state.
@@ -146,15 +155,29 @@ export class JobManager {
       for (let round = 1; round <= params.repeat; round++) {
         if (job.controller.signal.aborted) break;
         job.round = round;
+        job.currentSamples = Array(params.count).fill(null);
         const result = await detector.detect({
           baseUrl: gateway.url, apiKey: gateway.key, model: params.model,
           api: params.api, stream: params.stream, count: params.count,
           parallel: params.parallel, strict: params.strict, timeout: params.timeout,
           ...(params.effort ? { effort: params.effort } : {}),
-        }, job.controller.signal);
+        }, {
+          signal: job.controller.signal,
+          onSample: (index, sample) => {
+            // SDK callbacks never overlap. Ignore late events after cancellation.
+            if (job.state !== 'running' || job.controller.signal.aborted) return;
+            if (!Number.isInteger(index) || index < 0 || index >= params.count || !sample) return;
+            // Never retain model output text or Gateway credentials in public progress.
+            job.currentSamples[index] = publicSample(sample, index, gateway.key);
+          },
+        });
         if (job.controller.signal.aborted) break;
         job.completed += result.samples.length;
-        job.rounds.push({ round, samples: result.samples, analysis: result.analysis, error: result.error });
+        job.currentSamples = [];
+        job.rounds.push({
+          round, samples: result.samples.map((s, i) => publicSample(s, i, gateway.key)),
+          analysis: result.analysis, error: safeError(result.error, gateway.key),
+        });
       }
       if (!job.controller.signal.aborted) {
         job.state = job.rounds.some(r => r.analysis && ['scored', 'partial'].includes(r.analysis.decision))
@@ -164,7 +187,7 @@ export class JobManager {
     } catch (error) {
       if (!job.controller.signal.aborted) {
         job.state = 'failed';
-        job.error = String(error?.message || error).slice(0, 400);
+        job.error = safeError(error?.message || error, gateway.key);
       }
     } finally {
       job.finishedAt = Date.now();
@@ -179,6 +202,8 @@ export class JobManager {
     if (job.state === 'running') {
       job.state = 'cancelled';
       job.finishedAt = Date.now();
+      job.currentSamples = job.currentSamples.map(s =>
+        s && !FINAL_STATES.has(s.state) ? { ...s, state: 'cancelled' } : s);
       job.controller.abort();
     }
     return this.#view(job);
